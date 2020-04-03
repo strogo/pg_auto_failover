@@ -7,17 +7,21 @@ monitor = None
 node1 = None
 node2 = None
 
+
 def setup_module():
     global cluster
     cluster = pgautofailover.Cluster()
 
+
 def teardown_module():
     cluster.destroy()
+
 
 def test_000_create_monitor():
     global monitor
     monitor = cluster.create_monitor("/tmp/multi_standby/monitor")
     monitor.wait_until_pg_is_running()
+
 
 def test_001_init_primary():
     global node1
@@ -25,6 +29,7 @@ def test_001_init_primary():
     node1.create()
     node1.run()
     assert node1.wait_until_state(target_state="single")
+
 
 def test_002_candidate_priority():
     assert node1.get_candidate_priority() == 100
@@ -34,6 +39,7 @@ def test_002_candidate_priority():
 
     assert node1.set_candidate_priority(99)
     assert node1.get_candidate_priority() == 99
+
 
 def test_003_replication_quorum():
     assert node1.get_replication_quorum()
@@ -47,6 +53,7 @@ def test_003_replication_quorum():
     assert node1.set_replication_quorum("true")
     assert node1.get_replication_quorum()
 
+
 def test_004_add_standby():
     # the next test wants to set number_sync_standbys to 2
     # so we need at least 3 standbys to allow that
@@ -57,6 +64,7 @@ def test_004_add_standby():
     node2.run()
     assert node2.wait_until_state(target_state="secondary")
     assert node1.wait_until_state(target_state="primary")
+
 
 def test_005_number_sync_standbys():
     print()
@@ -70,11 +78,15 @@ def test_005_number_sync_standbys():
     print("set number_sync_standbys = 0")
     assert node1.set_number_sync_standbys(0)
     assert node1.get_number_sync_standbys() == 0
-    print("synchronous_standby_names = '%s'" %
-          node1.get_synchronous_standby_names())
+    print(
+        "synchronous_standby_names = '%s'"
+        % node1.get_synchronous_standby_names()
+    )
 
     print("set number_sync_standbys = 1")
     assert node1.set_number_sync_standbys(1)
     assert node1.get_number_sync_standbys() == 1
-    print("synchronous_standby_names = '%s'" %
-          node1.get_synchronous_standby_names())
+    print(
+        "synchronous_standby_names = '%s'"
+        % node1.get_synchronous_standby_names()
+    )
