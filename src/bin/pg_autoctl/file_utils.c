@@ -62,7 +62,6 @@ file_exists(const char *filename)
 bool
 directory_exists(const char *path)
 {
-	bool result = false;
 	struct stat info;
 
 	if (!file_exists(path))
@@ -76,7 +75,7 @@ directory_exists(const char *path)
 		return false;
 	}
 
-	result = (info.st_mode & S_IFMT) == S_IFDIR;
+	bool result = (info.st_mode & S_IFMT) == S_IFDIR;
 	return result;
 }
 
@@ -133,14 +132,13 @@ FILE *
 fopen_with_umask(const char *filePath, const char *modes, int flags, mode_t umask)
 {
 	int fileDescriptor = open(filePath, flags, umask);
-	FILE *fileStream = NULL;
 	if (fileDescriptor == -1)
 	{
 		log_error("Failed to open file \"%s\": %m", filePath);
 		return NULL;
 	}
 
-	fileStream = fdopen(fileDescriptor, modes);
+	FILE *fileStream = fdopen(fileDescriptor, modes);
 	if (fileStream == NULL)
 	{
 		log_error("Failed to open file \"%s\": %m", filePath);
@@ -242,11 +240,8 @@ append_to_file(char *data, long fileSize, const char *filePath)
 bool
 read_file(const char *filePath, char **contents, long *fileSize)
 {
-	char *data = NULL;
-	FILE *fileStream = NULL;
-
 	/* open a file */
-	fileStream = fopen_read_only(filePath);
+	FILE *fileStream = fopen_read_only(filePath);
 	if (fileStream == NULL)
 	{
 		log_error("Failed to open file \"%s\": %m", filePath);
@@ -277,7 +272,7 @@ read_file(const char *filePath, char **contents, long *fileSize)
 	}
 
 	/* read the contents */
-	data = malloc(*fileSize + 1);
+	char *data = malloc(*fileSize + 1);
 	if (data == NULL)
 	{
 		log_error("Failed to allocate %ld bytes", *fileSize);
@@ -383,7 +378,6 @@ duplicate_file(char *sourcePath, char *destinationPath)
 	char *fileContents;
 	long fileSize;
 	struct stat sourceFileStat;
-	bool foundError = false;
 
 	if (!read_file(sourcePath, &fileContents, &fileSize))
 	{
@@ -398,7 +392,7 @@ duplicate_file(char *sourcePath, char *destinationPath)
 		return false;
 	}
 
-	foundError = !write_file(fileContents, fileSize, destinationPath);
+	bool foundError = !write_file(fileContents, fileSize, destinationPath);
 
 	free(fileContents);
 
@@ -516,8 +510,6 @@ search_path_first(const char *filename, char *result)
 int
 search_path(const char *filename, char ***result)
 {
-	char *stringSpace = NULL;
-	char *path = NULL;
 	int pathListLength = 0;
 	int resultSize = 0;
 	int pathIndex = 0;
@@ -548,9 +540,9 @@ search_path(const char *filename, char ***result)
 	*result = malloc(pathListLength * sizeof(char *));
 
 	/* allocate memory to store the strings */
-	stringSpace = malloc(pathListLength * MAXPGPATH);
+	char *stringSpace = malloc(pathListLength * MAXPGPATH);
 
-	path = pathlist;
+	char *path = pathlist;
 
 	while (path != NULL)
 	{
@@ -710,7 +702,6 @@ set_program_absolute_path(char *program, int size)
 		 * or search for it in the PATH otherwise.
 		 */
 		char **pathEntries = NULL;
-		int n;
 
 		if (pg_autoctl_argv0[0] == '/')
 		{
@@ -718,7 +709,7 @@ set_program_absolute_path(char *program, int size)
 			return true;
 		}
 
-		n = search_path(pg_autoctl_argv0, &pathEntries);
+		int n = search_path(pg_autoctl_argv0, &pathEntries);
 
 		if (n < 1)
 		{
@@ -794,7 +785,6 @@ normalize_filename(const char *filename, char *dst, int size)
 int
 fformat(FILE *stream, const char *fmt, ...)
 {
-	int len;
 	va_list args;
 
 	if (stream == NULL || fmt == NULL)
@@ -804,7 +794,7 @@ fformat(FILE *stream, const char *fmt, ...)
 	}
 
 	va_start(args, fmt);
-	len = pg_vfprintf(stream, fmt, args);
+	int len = pg_vfprintf(stream, fmt, args);
 	va_end(args);
 	return len;
 }
@@ -816,7 +806,6 @@ fformat(FILE *stream, const char *fmt, ...)
 int
 sformat(char *str, size_t count, const char *fmt, ...)
 {
-	int len;
 	va_list args;
 
 	if (str == NULL || fmt == NULL)
@@ -826,7 +815,7 @@ sformat(char *str, size_t count, const char *fmt, ...)
 	}
 
 	va_start(args, fmt);
-	len = pg_vsnprintf(str, count, fmt, args);
+	int len = pg_vsnprintf(str, count, fmt, args);
 	va_end(args);
 
 	if (len >= count)

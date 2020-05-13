@@ -1322,7 +1322,6 @@ keeper_remove(Keeper *keeper, KeeperConfig *config, bool ignore_monitor_errors)
 bool
 keeper_init_state_write(Keeper *keeper)
 {
-	int fd;
 	char buffer[PG_AUTOCTL_KEEPER_STATE_FILE_SIZE];
 	KeeperStateInit initState = { 0 };
 
@@ -1352,8 +1351,8 @@ keeper_init_state_write(Keeper *keeper)
 	 */
 	memcpy(buffer, &initState, sizeof(KeeperStateInit)); /* IGNORE-BANNED */
 
-	fd = open(keeper->config.pathnames.init,
-			  O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+	int fd = open(keeper->config.pathnames.init,
+				  O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
 	if (fd < 0)
 	{
 		log_fatal("Failed to create keeper init state file \"%s\": %m",
@@ -1439,7 +1438,6 @@ keeper_init_state_read(Keeper *keeper, KeeperStateInit *initState)
 	char *filename = keeper->config.pathnames.init;
 	char *content = NULL;
 	long fileSize;
-	int pg_autoctl_state_version = 0;
 
 	log_debug("Reading current init state from \"%s\"", filename);
 
@@ -1449,7 +1447,7 @@ keeper_init_state_read(Keeper *keeper, KeeperStateInit *initState)
 		return false;
 	}
 
-	pg_autoctl_state_version =
+	int pg_autoctl_state_version =
 		((KeeperStateInit *) content)->pg_autoctl_state_version;
 
 	if (fileSize >= sizeof(KeeperStateData) &&
@@ -1483,8 +1481,6 @@ keeper_state_as_json(Keeper *keeper, char *json, int size)
 
 	JSON_Object *jsRoot = json_value_get_object(js);
 
-	char *serialized_string = NULL;
-	int len;
 
 	pg_setup_as_json(&(keeper->postgres.postgresSetup), jsPostgres);
 	keeperStateAsJSON(&(keeper->state), jsKeeperState);
@@ -1492,9 +1488,9 @@ keeper_state_as_json(Keeper *keeper, char *json, int size)
 	json_object_set_value(jsRoot, "postgres", jsPostgres);
 	json_object_set_value(jsRoot, "state", jsKeeperState);
 
-	serialized_string = json_serialize_to_string_pretty(js);
+	char *serialized_string = json_serialize_to_string_pretty(js);
 
-	len = strlcpy(json, serialized_string, size);
+	int len = strlcpy(json, serialized_string, size);
 
 	json_free_serialized_string(serialized_string);
 	json_value_free(js);

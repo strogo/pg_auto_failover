@@ -1178,15 +1178,13 @@ static void
 cli_show_file(int argc, char **argv)
 {
 	KeeperConfig config = keeperOptions;
-	pgAutoCtlNodeRole role = PG_AUTOCTL_ROLE_UNKNOWN;
 
-	role = ProbeConfigurationFileRole(config.pathnames.config);
+	pgAutoCtlNodeRole role = ProbeConfigurationFileRole(config.pathnames.config);
 
 	switch (showFileOptions.selection)
 	{
 		case SHOW_FILE_ALL:
 		{
-			char *serialized_string = NULL;
 			JSON_Value *js = json_value_init_object();
 			JSON_Object *root = json_value_get_object(js);
 
@@ -1200,7 +1198,7 @@ cli_show_file(int argc, char **argv)
 
 			json_object_set_string(root, "pid", config.pathnames.pid);
 
-			serialized_string = json_serialize_to_string_pretty(js);
+			char *serialized_string = json_serialize_to_string_pretty(js);
 
 			fformat(stdout, "%s\n", serialized_string);
 

@@ -66,7 +66,6 @@ fsm_init_primary(Keeper *keeper)
 	KeeperStateInit initState = { 0 };
 	PostgresSetup *pgSetup = &(postgres->postgresSetup);
 	bool postgresInstanceExists = pg_setup_pgdata_exists(pgSetup);
-	bool pgInstanceIsOurs = false;
 
 	log_info("Initialising postgres as a primary");
 
@@ -103,7 +102,7 @@ fsm_init_primary(Keeper *keeper)
 		}
 	}
 
-	pgInstanceIsOurs =
+	bool pgInstanceIsOurs =
 		initState.pgInitState == PRE_INIT_STATE_EMPTY ||
 		initState.pgInitState == PRE_INIT_STATE_EXISTS;
 

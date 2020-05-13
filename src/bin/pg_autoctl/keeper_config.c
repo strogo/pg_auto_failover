@@ -418,19 +418,17 @@ bool
 keeper_config_write_file(KeeperConfig *config)
 {
 	const char *filePath = config->pathnames.config;
-	bool success = false;
-	FILE *fileStream = NULL;
 
 	log_trace("keeper_config_write_file \"%s\"", filePath);
 
-	fileStream = fopen_with_umask(filePath, "w", FOPEN_FLAGS_W, 0644);
+	FILE *fileStream = fopen_with_umask(filePath, "w", FOPEN_FLAGS_W, 0644);
 	if (fileStream == NULL)
 	{
 		/* errors have already been logged */
 		return false;
 	}
 
-	success = keeper_config_write(fileStream, config);
+	bool success = keeper_config_write(fileStream, config);
 
 	if (fclose(fileStream) == EOF)
 	{
@@ -607,10 +605,9 @@ keeper_config_set_groupId_and_slot_name(KeeperConfig *config,
 										int nodeId, int groupId)
 {
 	char buffer[BUFSIZE] = { 0 };
-	char *replicationSlotName = NULL;
 
 	(void) postgres_sprintf_replicationSlotName(nodeId, buffer, sizeof(buffer));
-	replicationSlotName = strdup(buffer);
+	char *replicationSlotName = strdup(buffer);
 
 	config->groupId = groupId;
 	config->replication_slot_name = replicationSlotName;

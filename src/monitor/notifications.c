@@ -32,7 +32,6 @@
 void
 LogAndNotifyMessage(char *message, size_t size, const char *fmt, ...)
 {
-	int n;
 	va_list args;
 
 	va_start(args, fmt);
@@ -43,7 +42,7 @@ LogAndNotifyMessage(char *message, size_t size, const char *fmt, ...)
 	 * do not write before the allocated buffer.
 	 *
 	 */
-	n = vsnprintf(message, size - 2, fmt, args); /* IGNORE-BANNED */
+	int n = vsnprintf(message, size - 2, fmt, args); /* IGNORE-BANNED */
 	va_end(args);
 
 	if (n < 0)
@@ -76,15 +75,14 @@ NotifyStateChange(ReplicationState reportedState,
 				  bool replicationQuorum,
 				  char *description)
 {
-	int64 eventid;
 	StringInfo payload = makeStringInfo();
 
 	/*
 	 * Insert the event in our events table.
 	 */
-	eventid = InsertEvent(formationId, groupId, nodeId, nodeName, nodePort,
-						  reportedState, goalState, pgsrSyncState, reportedLSN,
-						  candidatePriority, replicationQuorum, description);
+	int64 eventid = InsertEvent(formationId, groupId, nodeId, nodeName, nodePort,
+								reportedState, goalState, pgsrSyncState, reportedLSN,
+								candidatePriority, replicationQuorum, description);
 
 	/*
 	 * Rather than try and escape dots and colon characters from the user
@@ -161,7 +159,6 @@ InsertEvent(const char *formationId, int groupId, int64 nodeId,
 	};
 
 	const int argCount = sizeof(argValues) / sizeof(argValues[0]);
-	int spiStatus = 0;
 	int64 eventId = 0;
 
 	const char *insertQuery =
@@ -172,18 +169,17 @@ InsertEvent(const char *formationId, int groupId, int64 nodeId,
 
 	SPI_connect();
 
-	spiStatus = SPI_execute_with_args(insertQuery, argCount, argTypes,
-									  argValues, NULL, false, 0);
+	int spiStatus = SPI_execute_with_args(insertQuery, argCount, argTypes,
+										  argValues, NULL, false, 0);
 
 	if (spiStatus == SPI_OK_INSERT_RETURNING && SPI_processed > 0)
 	{
 		bool isNull = false;
-		Datum eventIdDatum = 0;
 
-		eventIdDatum = SPI_getbinval(SPI_tuptable->vals[0],
-									 SPI_tuptable->tupdesc,
-									 1,
-									 &isNull);
+		Datum eventIdDatum = SPI_getbinval(SPI_tuptable->vals[0],
+										   SPI_tuptable->tupdesc,
+										   1,
+										   &isNull);
 
 		eventId = DatumGetInt64(eventIdDatum);
 	}

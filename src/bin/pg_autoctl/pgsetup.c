@@ -50,7 +50,6 @@ pg_setup_init(PostgresSetup *pgSetup,
 			  bool missing_pgdata_is_ok,
 			  bool pg_is_not_running_is_ok)
 {
-	bool pgIsReady = false;
 	int errors = 0;
 
 	/*
@@ -217,7 +216,7 @@ pg_setup_init(PostgresSetup *pgSetup,
 	 * Read the postmaster.pid file to find out pid, port and unix socket
 	 * directory of a running PostgreSQL instance.
 	 */
-	pgIsReady = pg_setup_is_ready(pgSetup, pg_is_not_running_is_ok);
+	bool pgIsReady = pg_setup_is_ready(pgSetup, pg_is_not_running_is_ok);
 
 	if (!pgIsReady && !pg_is_not_running_is_ok)
 	{
@@ -521,8 +520,6 @@ read_pg_pidfile(PostgresSetup *pgSetup, bool pgIsNotRunningIsOk, int maxRetries)
 
 	for (lineno = 1; lineno <= LOCK_FILE_LINE_PM_STATUS; lineno++)
 	{
-		int lineLength = -1;
-
 		if (fgets(line, sizeof(line), fp) == NULL)
 		{
 			/* later lines are added during start-up, will appear later */
@@ -554,7 +551,7 @@ read_pg_pidfile(PostgresSetup *pgSetup, bool pgIsNotRunningIsOk, int maxRetries)
 			}
 		}
 
-		lineLength = strlen(line);
+		int lineLength = strlen(line);
 
 		/* chomp the ending Newline (\n) */
 		if (lineLength > 0)
@@ -1185,8 +1182,6 @@ pg_setup_is_primary(PostgresSetup *pgSetup)
 char *
 pg_setup_get_username(PostgresSetup *pgSetup)
 {
-	uid_t uid;
-	struct passwd *pw;
 	char userEnv[NAMEDATALEN];
 
 	/* use a configured username if provided */
@@ -1198,8 +1193,8 @@ pg_setup_get_username(PostgresSetup *pgSetup)
 	log_trace("username not configured");
 
 	/* use the passwd file to find the username, same as whoami */
-	uid = geteuid();
-	pw = getpwuid(uid);
+	uid_t uid = geteuid();
+	struct passwd *pw = getpwuid(uid);
 	if (pw)
 	{
 		log_trace("username found in passwd: %s", pw->pw_name);

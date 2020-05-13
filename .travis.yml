@@ -42,6 +42,7 @@ install:
 script:
   - 'if [ -n "$LINTING" ]; then citus_indent --check; fi'
   - 'if [ -n "$LINTING" ]; then ci/banned.h.sh; fi'
+  - 'if [ -n "$LINTING" ]; then ci/remove_useless_declarations.sh && git diff --cached --exit-code; fi'
   - 'if [ -z "$LINTING" ]; then make -j5 CFLAGS=-Werror; fi'
   - 'if [ -z "$LINTING" ]; then sudo make install; fi'
   - 'if [ -z "$LINTING" ]; then PATH=`pg_config --bindir`:$PATH make test; fi'

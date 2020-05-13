@@ -80,7 +80,6 @@ static bool pg_write_standby_signal(const char *pgdata,
 char *
 pg_ctl_version(const char *pg_ctl_path)
 {
-	char *version;
 	Program prog = run_program(pg_ctl_path, "--version", NULL);
 
 	if (prog.returnCode != 0)
@@ -92,7 +91,7 @@ pg_ctl_version(const char *pg_ctl_path)
 		return NULL;
 	}
 
-	version = parse_version_number(prog.stdOut);
+	char *version = parse_version_number(prog.stdOut);
 	free_program(&prog);
 
 	return version;
@@ -106,7 +105,6 @@ bool
 pg_controldata(PostgresSetup *pgSetup, bool missing_ok)
 {
 	char pg_controldata_path[MAXPGPATH];
-	Program prog;
 
 	if (pgSetup->pgdata[0] == '\0' || pgSetup->pg_ctl[0] == '\0')
 	{
@@ -119,7 +117,7 @@ pg_controldata(PostgresSetup *pgSetup, bool missing_ok)
 
 	/* We parse the output of pg_controldata, make sure it's as expected */
 	setenv("LANG", "C", 1);
-	prog = run_program(pg_controldata_path, pgSetup->pgdata, NULL);
+	Program prog = run_program(pg_controldata_path, pgSetup->pgdata, NULL);
 
 	if (prog.returnCode == 0)
 	{
@@ -273,10 +271,8 @@ pg_include_config(const char *configFilePath,
 				  const char *configIncludeLine,
 				  const char *configIncludeComment)
 {
-	char *includeLine = NULL;
 	char *currentConfContents = NULL;
 	long currentConfSize = 0L;
-	PQExpBuffer newConfContents = NULL;
 
 	/* read the current postgresql.conf contents */
 	if (!read_file(configFilePath, &currentConfContents, &currentConfSize))
@@ -285,7 +281,7 @@ pg_include_config(const char *configFilePath,
 	}
 
 	/* find the include 'postgresql-auto-failover.conf' line */
-	includeLine = strstr(currentConfContents, configIncludeLine);
+	char *includeLine = strstr(currentConfContents, configIncludeLine);
 
 	if (includeLine != NULL && (includeLine == currentConfContents ||
 								includeLine[-1] == '\n'))
@@ -300,7 +296,7 @@ pg_include_config(const char *configFilePath,
 	log_debug("Adding %s to \"%s\"", configIncludeLine, configFilePath);
 
 	/* build the new postgresql.conf contents */
-	newConfContents = createPQExpBuffer();
+	PQExpBuffer newConfContents = createPQExpBuffer();
 	if (newConfContents == NULL)
 	{
 		log_error("Failed to allocate memory");
@@ -547,7 +543,6 @@ pg_basebackup(const char *pgdata,
 			  ReplicationSource *replicationSource)
 {
 	int returnCode;
-	Program program;
 	char pg_basebackup[MAXPGPATH];
 
 	NodeAddress *primaryNode = &(replicationSource->primaryNode);
@@ -596,17 +591,17 @@ pg_basebackup(const char *pgdata,
 			 replicationSource->maximumBackupRate,
 			 replicationSource->slotName);
 
-	program = run_program(pg_basebackup,
-						  "-w",
-						  "-d", primaryConnInfo,
-						  "--pgdata", replicationSource->backupDir,
-						  "-U", replicationSource->userName,
-						  "--verbose",
-						  "--progress",
-						  "--max-rate", replicationSource->maximumBackupRate,
-						  "--wal-method=stream",
-						  "--slot", replicationSource->slotName,
-						  NULL);
+	Program program = run_program(pg_basebackup,
+								  "-w",
+								  "-d", primaryConnInfo,
+								  "--pgdata", replicationSource->backupDir,
+								  "-U", replicationSource->userName,
+								  "--verbose",
+								  "--progress",
+								  "--max-rate", replicationSource->maximumBackupRate,
+								  "--wal-method=stream",
+								  "--slot", replicationSource->slotName,
+								  NULL);
 
 	/* pg_basebackup uses stderr for all of its output */
 	(void) log_program_output(program, LOG_INFO, LOG_INFO);
@@ -655,7 +650,6 @@ pg_rewind(const char *pgdata,
 		  ReplicationSource *replicationSource)
 {
 	int returnCode;
-	Program program;
 	char pg_rewind[MAXPGPATH] = { 0 };
 
 	NodeAddress *primaryNode = &(replicationSource->primaryNode);
@@ -690,11 +684,11 @@ pg_rewind(const char *pgdata,
 	log_info(" %s --target-pgdata \"%s\" --source-server \"%s\" --progress",
 			 pg_rewind, pgdata, primaryConnInfo);
 
-	program = run_program(pg_rewind,
-						  "--target-pgdata", pgdata,
-						  "--source-server", primaryConnInfo,
-						  "--progress",
-						  NULL);
+	Program program = run_program(pg_rewind,
+								  "--target-pgdata", pgdata,
+								  "--source-server", primaryConnInfo,
+								  "--progress",
+								  NULL);
 
 	/* pg_basebackup uses stderr for all of its output */
 	(void) log_program_output(program, LOG_INFO, LOG_INFO);
@@ -777,7 +771,6 @@ pg_ctl_start(const char *pg_ctl,
 			 const char *pgdata, int pgport, char *listen_addresses)
 {
 	bool success = false;
-	Program program;
 	char logfile[MAXPGPATH];
 	char pgport_option[20];
 	char listen_addresses_option[BUFSIZE];
@@ -789,7 +782,6 @@ pg_ctl_start(const char *pg_ctl,
 	char env_pg_regress_sock_dir[MAXPGPATH];
 
 	char command[BUFSIZE];
-	int commandSize = 0;
 
 	join_path_components(logfile, pgdata, "startup.log");
 	sformat(pgport_option, sizeof(pgport_option), "\"-p %d\"", pgport);
@@ -832,10 +824,10 @@ pg_ctl_start(const char *pg_ctl,
 	args[argsIndex] = NULL;
 
 	/* we want to call setsid() when running this program. */
-	program = initialize_program(args, true);
+	Program program = initialize_program(args, true);
 
 	/* log the exact command line we're using */
-	commandSize = snprintf_program_command_line(&program, command, BUFSIZE);
+	int commandSize = snprintf_program_command_line(&program, command, BUFSIZE);
 
 	if (commandSize >= BUFSIZE)
 	{
@@ -937,9 +929,7 @@ pg_log_startup(const char *pgdata, int logLevel)
 	int pathLogLevel = logLevel <= LOG_DEBUG ? LOG_DEBUG : LOG_WARN;
 
 	struct stat pgStartupStat;
-	int64_t pgStartupMtime = 0;
 
-	DIR *logDir = NULL;
 	struct dirent *logFileDirEntry = NULL;
 
 	/* prepare startup.log file in PGDATA */
@@ -989,10 +979,10 @@ pg_log_startup(const char *pgdata, int logLevel)
 				  pgStartupPath);
 		return false;
 	}
-	pgStartupMtime = ST_MTIME_S(pgStartupStat);
+	int64_t pgStartupMtime = ST_MTIME_S(pgStartupStat);
 
 	/* open and scan through the Postgres log directory */
-	logDir = opendir(pgLogDirPath);
+	DIR *logDir = opendir(pgLogDirPath);
 
 	if (logDir == NULL)
 	{
@@ -1005,7 +995,6 @@ pg_log_startup(const char *pgdata, int logLevel)
 	{
 		char pgLogFilePath[MAXPGPATH] = { 0 };
 		struct stat pgLogFileStat;
-		int64_t pgLogFileMtime = 0;
 
 		/* our logFiles are regular files, skip . and .. and others */
 		if (logFileDirEntry->d_type != DT_REG)
@@ -1025,7 +1014,7 @@ pg_log_startup(const char *pgdata, int logLevel)
 					  pgLogFilePath);
 			return false;
 		}
-		pgLogFileMtime = ST_MTIME_S(pgLogFileStat);
+		int64_t pgLogFileMtime = ST_MTIME_S(pgLogFileStat);
 
 		/*
 		 * Compare modification times and only add to our logs the content
@@ -1080,19 +1069,16 @@ pg_log_startup(const char *pgdata, int logLevel)
 bool
 pg_ctl_stop(const char *pg_ctl, const char *pgdata)
 {
-	Program program;
-	int status = 0;
-	bool pgdata_exists = false;
 	const bool log_output = true;
 
 	log_debug("%s --pgdata %s --wait stop --mode fast", pg_ctl, pgdata);
 
-	program = run_program(pg_ctl,
-						  "--pgdata", pgdata,
-						  "--wait",
-						  "stop",
-						  "--mode", "fast",
-						  NULL);
+	Program program = run_program(pg_ctl,
+								  "--pgdata", pgdata,
+								  "--wait",
+								  "stop",
+								  "--mode", "fast",
+								  NULL);
 
 	/*
 	 * Case 1. "pg_ctl stop" was successful, so we could stop the PostgreSQL
@@ -1108,7 +1094,7 @@ pg_ctl_stop(const char *pg_ctl, const char *pgdata)
 	 * Case 2. The data directory doesn't exist. So we assume PostgreSQL is
 	 * not running, so stopping the PostgreSQL server was successful.
 	 */
-	pgdata_exists = directory_exists(pgdata);
+	bool pgdata_exists = directory_exists(pgdata);
 	if (!pgdata_exists)
 	{
 		log_info("pgdata \"%s\" does not exists, consider this as PostgreSQL "
@@ -1126,7 +1112,7 @@ pg_ctl_stop(const char *pg_ctl, const char *pgdata)
 	 * See https://www.postgresql.org/docs/current/static/app-pg-ctl.html
 	 */
 
-	status = pg_ctl_status(pg_ctl, pgdata, log_output);
+	int status = pg_ctl_status(pg_ctl, pgdata, log_output);
 	if (status == PG_CTL_STATUS_NOT_RUNNING)
 	{
 		log_info("pg_ctl stop failed, but PostgreSQL is not running anyway");
@@ -1300,12 +1286,11 @@ pg_write_recovery_conf(const char *pgdata,
 					   const char *replicationSlotName)
 {
 	char recoveryConfPath[MAXPGPATH];
-	PQExpBuffer content = NULL;
 
 	log_trace("pg_write_recovery_conf");
 
 	/* build the contents of recovery.conf */
-	content = createPQExpBuffer();
+	PQExpBuffer content = createPQExpBuffer();
 	appendPQExpBuffer(content, "standby_mode = 'on'");
 	appendPQExpBuffer(content, "\nprimary_conninfo = %s", primaryConnInfo);
 	appendPQExpBuffer(content, "\nprimary_slot_name = '%s'", replicationSlotName);
@@ -1418,9 +1403,8 @@ prepare_primary_conninfo(char *primaryConnInfo,
 {
 	int size = 0;
 	char escaped[BUFSIZE];
-	PQExpBuffer buffer = NULL;
 
-	buffer = createPQExpBuffer();
+	PQExpBuffer buffer = createPQExpBuffer();
 
 	/* application_name shows up in pg_stat_replication on the primary */
 	appendPQExpBuffer(buffer, "application_name=%s", applicationName);
@@ -1690,9 +1674,7 @@ pg_is_running(const char *pg_ctl, const char *pgdata)
 bool
 pg_create_self_signed_cert(PostgresSetup *pgSetup, const char *nodename)
 {
-	Program program;
 	char subject[BUFSIZE] = { 0 };
-	int size = 0;
 	char openssl[MAXPGPATH];
 	if (!search_path_first("openssl", openssl))
 	{
@@ -1706,8 +1688,8 @@ pg_create_self_signed_cert(PostgresSetup *pgSetup, const char *nodename)
 		return false;
 	}
 
-	size = sformat(pgSetup->ssl.serverKey, MAXPGPATH,
-				   "%s/server.key", pgSetup->pgdata);
+	int size = sformat(pgSetup->ssl.serverKey, MAXPGPATH,
+					   "%s/server.key", pgSetup->pgdata);
 
 	if (size == -1 || size > MAXPGPATH)
 	{
@@ -1745,13 +1727,13 @@ pg_create_self_signed_cert(PostgresSetup *pgSetup, const char *nodename)
 			 pgSetup->ssl.serverKey,
 			 subject);
 
-	program = run_program(openssl,
-						  "req", "-new", "-x509", "-days", "365",
-						  "-nodes", "-text",
-						  "-out", pgSetup->ssl.serverCert,
-						  "-keyout", pgSetup->ssl.serverKey,
-						  "-subj", subject,
-						  NULL);
+	Program program = run_program(openssl,
+								  "req", "-new", "-x509", "-days", "365",
+								  "-nodes", "-text",
+								  "-out", pgSetup->ssl.serverCert,
+								  "-keyout", pgSetup->ssl.serverKey,
+								  "-subj", subject,
+								  NULL);
 
 	if (program.returnCode != 0)
 	{

@@ -181,7 +181,6 @@ keeper_cli_add_standby_to_hba(int argc, char **argv)
 	char standbyHostname[_POSIX_HOST_NAME_MAX];
 	bool missingPgdataOk = false;
 	bool postgresNotRunningOk = false;
-	int hostLength = 0;
 
 	keeper_config_init(&config, missingPgdataOk, postgresNotRunningOk);
 	local_postgres_init(&postgres, &(config.pgSetup));
@@ -193,8 +192,8 @@ keeper_cli_add_standby_to_hba(int argc, char **argv)
 		exit(EXIT_CODE_BAD_ARGS);
 	}
 
-	hostLength = strlcpy(standbyHostname, argv[0],
-						 _POSIX_HOST_NAME_MAX);
+	int hostLength = strlcpy(standbyHostname, argv[0],
+							 _POSIX_HOST_NAME_MAX);
 	if (hostLength >= _POSIX_HOST_NAME_MAX)
 	{
 		log_fatal("Hostname \"%s\" given in command line is %d characters, "
@@ -245,7 +244,6 @@ void
 keeper_cli_pgsetup_is_ready(int argc, char **argv)
 {
 	PostgresSetup pgSetup = { 0 };
-	bool pgIsReady = false;
 	bool pgIsNotRunningIsOk = false;
 
 	if (!pg_setup_init(&pgSetup, &keeperOptions.pgSetup, true, true))
@@ -255,7 +253,7 @@ keeper_cli_pgsetup_is_ready(int argc, char **argv)
 
 	log_debug("Initialized pgSetup, now calling pg_setup_is_ready()");
 
-	pgIsReady = pg_setup_is_ready(&pgSetup, pgIsNotRunningIsOk);
+	bool pgIsReady = pg_setup_is_ready(&pgSetup, pgIsNotRunningIsOk);
 
 	log_info("Postgres status is: \"%s\"", pmStatusToString(pgSetup.pm_status));
 
@@ -276,7 +274,6 @@ keeper_cli_pgsetup_wait_until_ready(int argc, char **argv)
 {
 	int timeout = 30;
 	PostgresSetup pgSetup = { 0 };
-	bool pgIsReady = false;
 
 	if (!pg_setup_init(&pgSetup, &keeperOptions.pgSetup, true, true))
 	{
@@ -285,7 +282,7 @@ keeper_cli_pgsetup_wait_until_ready(int argc, char **argv)
 
 	log_debug("Initialized pgSetup, now calling pg_setup_wait_until_is_ready()");
 
-	pgIsReady = pg_setup_wait_until_is_ready(&pgSetup, timeout, LOG_INFO);
+	bool pgIsReady = pg_setup_wait_until_is_ready(&pgSetup, timeout, LOG_INFO);
 
 	log_info("Postgres status is: \"%s\"", pmStatusToString(pgSetup.pm_status));
 
@@ -330,7 +327,6 @@ keeper_cli_init_standby(int argc, char **argv)
 
 	KeeperConfig config = keeperOptions;
 	LocalPostgresServer postgres = { 0 };
-	int hostLength = 0;
 
 	if (argc != 2)
 	{
@@ -341,8 +337,8 @@ keeper_cli_init_standby(int argc, char **argv)
 	keeper_config_init(&config, missing_pgdata_is_ok, pg_not_running_is_ok);
 	local_postgres_init(&postgres, &(config.pgSetup));
 
-	hostLength = strlcpy(postgres.replicationSource.primaryNode.host, argv[0],
-						 _POSIX_HOST_NAME_MAX);
+	int hostLength = strlcpy(postgres.replicationSource.primaryNode.host, argv[0],
+							 _POSIX_HOST_NAME_MAX);
 	if (hostLength >= _POSIX_HOST_NAME_MAX)
 	{
 		log_fatal("Hostname \"%s\" given in command line is %d characters, "
@@ -386,7 +382,6 @@ keeper_cli_rewind_old_primary(int argc, char **argv)
 {
 	const bool missing_pgdata_is_ok = false;
 	const bool pg_not_running_is_ok = true;
-	int hostLength = 0;
 
 	KeeperConfig config = keeperOptions;
 	LocalPostgresServer postgres = { 0 };
@@ -400,8 +395,8 @@ keeper_cli_rewind_old_primary(int argc, char **argv)
 	keeper_config_init(&config, missing_pgdata_is_ok, pg_not_running_is_ok);
 	local_postgres_init(&postgres, &(config.pgSetup));
 
-	hostLength = strlcpy(postgres.replicationSource.primaryNode.host, argv[0],
-						 _POSIX_HOST_NAME_MAX);
+	int hostLength = strlcpy(postgres.replicationSource.primaryNode.host, argv[0],
+							 _POSIX_HOST_NAME_MAX);
 	if (hostLength >= _POSIX_HOST_NAME_MAX)
 	{
 		log_fatal("Hostname \"%s\" given in command line is %d characters, "

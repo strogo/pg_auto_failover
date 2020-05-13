@@ -41,17 +41,15 @@ char *
 regexp_first_match(const char *string, const char *regex)
 {
 	regex_t compiledRegex;
-	int status = 0;
 
 	regmatch_t m[RE_MATCH_COUNT];
-	int matchStatus;
 
 	if (string == NULL)
 	{
 		return NULL;
 	}
 
-	status = regcomp(&compiledRegex, regex, REG_EXTENDED | REG_NEWLINE);
+	int status = regcomp(&compiledRegex, regex, REG_EXTENDED | REG_NEWLINE);
 
 	if (status != 0)
 	{
@@ -79,7 +77,7 @@ regexp_first_match(const char *string, const char *regex)
 	 * regexec returns 0 if the regular expression matches; otherwise, it
 	 * returns a nonzero value.
 	 */
-	matchStatus = regexec(&compiledRegex, string, RE_MATCH_COUNT, m, 0);
+	int matchStatus = regexec(&compiledRegex, string, RE_MATCH_COUNT, m, 0);
 	regfree(&compiledRegex);
 
 	/* We're interested into 1. re matches 2. captured at least one group */
@@ -160,10 +158,9 @@ parse_controldata_field_uint32(const char *controlDataString,
 							   uint32_t *dest)
 {
 	char regex[BUFSIZE];
-	char *match;
 
 	sformat(regex, BUFSIZE, "^%s: *([0-9]+)$", fieldName);
-	match = regexp_first_match(controlDataString, regex);
+	char *match = regexp_first_match(controlDataString, regex);
 
 	if (match == NULL)
 	{
@@ -193,10 +190,9 @@ parse_controldata_field_uint64(const char *controlDataString,
 							   uint64_t *dest)
 {
 	char regex[BUFSIZE];
-	char *match;
 
 	sformat(regex, BUFSIZE, "^%s: *([0-9]+)$", fieldName);
-	match = regexp_first_match(controlDataString, regex);
+	char *match = regexp_first_match(controlDataString, regex);
 
 	if (match == NULL)
 	{
@@ -232,7 +228,6 @@ bool
 parse_state_notification_message(StateNotification *notification)
 {
 	char *ptr = (char *) notification->message;
-	char *col = NULL;
 
 	/* 10 is the amount of character S, colons (:) and dots (.) */
 	if (ptr == NULL || strlen(ptr) < 10 || *ptr != 'S')
@@ -246,7 +241,7 @@ parse_state_notification_message(StateNotification *notification)
 	ptr++;
 
 	/* read the states */
-	col = strchr(ptr, FIELD_SEP);
+	char *col = strchr(ptr, FIELD_SEP);
 	*col = '\0';
 
 	notification->reportedState = NodeStateFromString(ptr);
@@ -308,10 +303,9 @@ parse_state_notification_message(StateNotification *notification)
 static int
 read_length_delimited_string_at(const char *ptr, char *buffer, int size)
 {
-	char *col = NULL;
 	int len = 0;
 
-	col = strchr(ptr, STRLEN_SEP);
+	char *col = strchr(ptr, STRLEN_SEP);
 	*col = '\0';
 	if (!stringToInt(ptr, &len))
 	{

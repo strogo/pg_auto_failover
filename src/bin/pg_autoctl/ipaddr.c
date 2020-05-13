@@ -45,10 +45,8 @@ fetchLocalIPAddress(char *localIpAddress, int size,
 					const char *serviceName, int servicePort)
 {
 	char buffer[INET_ADDRSTRLEN];
-	const char *ipAddr;
 	struct sockaddr_in name;
 	socklen_t namelen = sizeof(name);
-	int err = -1;
 
 	struct sockaddr_in serv;
 
@@ -66,7 +64,7 @@ fetchLocalIPAddress(char *localIpAddress, int size,
 	serv.sin_addr.s_addr = inet_addr(serviceName);
 	serv.sin_port = htons(servicePort);
 
-	err = connect(sock, (const struct sockaddr *) &serv, sizeof(serv));
+	int err = connect(sock, (const struct sockaddr *) &serv, sizeof(serv));
 	if (err < 0)
 	{
 		if (env_found_empty("PG_REGRESS_SOCK_DIR"))
@@ -91,7 +89,7 @@ fetchLocalIPAddress(char *localIpAddress, int size,
 		return false;
 	}
 
-	ipAddr = inet_ntop(AF_INET, &name.sin_addr, buffer, INET_ADDRSTRLEN);
+	const char *ipAddr = inet_ntop(AF_INET, &name.sin_addr, buffer, INET_ADDRSTRLEN);
 
 	if (ipAddr != NULL)
 	{
@@ -408,12 +406,11 @@ ipv6eq(struct sockaddr_in6 *a, struct sockaddr_in6 *b)
 bool
 findHostnameLocalAddress(const char *hostname, char *localIpAddress, int size)
 {
-	int error;
 	struct addrinfo *dns_lookup_addr;
 	struct addrinfo *dns_addr;
 	struct ifaddrs *ifaddrList, *ifaddr;
 
-	error = getaddrinfo(hostname, NULL, 0, &dns_lookup_addr);
+	int error = getaddrinfo(hostname, NULL, 0, &dns_lookup_addr);
 	if (error != 0)
 	{
 		log_warn("Failed to resolve DNS name \"%s\": %s",
@@ -559,12 +556,11 @@ ip_address_type(const char *hostname)
 bool
 findHostnameFromLocalIpAddress(char *localIpAddress, char *hostname, int size)
 {
-	int ret = 0;
 	char hbuf[NI_MAXHOST];
 	struct addrinfo *lookup, *ai;
 
 	/* parse ipv4 or ipv6 address using getaddrinfo() */
-	ret = getaddrinfo(localIpAddress, NULL, 0, &lookup);
+	int ret = getaddrinfo(localIpAddress, NULL, 0, &lookup);
 	if (ret != 0)
 	{
 		log_warn("Failed to resolve DNS name \"%s\": %s",

@@ -433,7 +433,6 @@ cli_set_node_candidate_priority(int argc, char **argv)
 {
 	Keeper keeper = { 0 };
 
-	int candidatePriority = -1;
 
 	bool missingPgdataIsOk = true;
 	bool pgIsNotRunningIsOk = true;
@@ -478,7 +477,7 @@ cli_set_node_candidate_priority(int argc, char **argv)
 		exit(EXIT_CODE_BAD_ARGS);
 	}
 
-	candidatePriority = strtol(argv[0], NULL, 10);
+	int candidatePriority = strtol(argv[0], NULL, 10);
 
 	if (errno == EINVAL || candidatePriority < 0 || candidatePriority > 100)
 	{
@@ -596,7 +595,6 @@ cli_set_formation_number_sync_standbys(int argc, char **argv)
 	KeeperConfig config = keeperOptions;
 	Monitor monitor = { 0 };
 
-	int numberSyncStandbys = -1;
 
 	bool missingPgdataIsOk = true;
 	bool pgIsNotRunningIsOk = true;
@@ -613,7 +611,7 @@ cli_set_formation_number_sync_standbys(int argc, char **argv)
 		exit(EXIT_CODE_BAD_ARGS);
 	}
 
-	numberSyncStandbys = strtol(argv[0], NULL, 10);
+	int numberSyncStandbys = strtol(argv[0], NULL, 10);
 	if (errno == EINVAL || numberSyncStandbys < 0)
 	{
 		log_error("number-sync-standbys value %s is not valid."
@@ -827,7 +825,6 @@ static bool
 set_node_nodename(Keeper *keeper, const char *nodename)
 {
 	KeeperStateData keeperState = { 0 };
-	int nodeId = -1;
 
 	if (!keeper_state_read(&keeperState, keeper->config.pathnames.state))
 	{
@@ -835,7 +832,7 @@ set_node_nodename(Keeper *keeper, const char *nodename)
 		return false;
 	}
 
-	nodeId = keeperState.current_node_id;
+	int nodeId = keeperState.current_node_id;
 
 	if (!monitor_set_nodename(&(keeper->monitor), nodeId, nodename))
 	{

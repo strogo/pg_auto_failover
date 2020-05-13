@@ -51,9 +51,7 @@ pghba_ensure_host_rule_exists(const char *hbaFilePath,
 {
 	char *currentHbaContents = NULL;
 	long currentHbaSize = 0L;
-	char *includeLine = NULL;
 	PQExpBuffer hbaLineBuffer = createPQExpBuffer();
-	PQExpBuffer newHbaContents = NULL;
 
 	if (hbaLineBuffer == NULL)
 	{
@@ -117,7 +115,7 @@ pghba_ensure_host_rule_exists(const char *hbaFilePath,
 		return false;
 	}
 
-	includeLine = strstr(currentHbaContents, hbaLineBuffer->data);
+	char *includeLine = strstr(currentHbaContents, hbaLineBuffer->data);
 
 	/*
 	 * If the rule was found and it starts on a new line. We can
@@ -132,7 +130,7 @@ pghba_ensure_host_rule_exists(const char *hbaFilePath,
 	}
 
 	/* build the new postgresql.conf contents */
-	newHbaContents = createPQExpBuffer();
+	PQExpBuffer newHbaContents = createPQExpBuffer();
 	if (newHbaContents == NULL)
 	{
 		log_error("Failed to allocate memory");

@@ -61,7 +61,6 @@ keeper_node_active_loop(Keeper *keeper, pid_t start_pid)
 		MonitorAssignedState assignedState = { 0 };
 		bool needStateChange = false;
 		bool transitionFailed = false;
-		bool reportPgIsRunning = false;
 		uint64_t now = time(NULL);
 
 		/*
@@ -139,7 +138,7 @@ keeper_node_active_loop(Keeper *keeper, pid_t start_pid)
 
 		CHECK_FOR_FAST_SHUTDOWN;
 
-		reportPgIsRunning = ReportPgIsRunning(keeper);
+		bool reportPgIsRunning = ReportPgIsRunning(keeper);
 
 		/* We used to output that in INFO every 5s, which is too much chatter */
 		log_debug("Calling node_active for node %s/%d/%d with current state: "

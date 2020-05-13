@@ -130,16 +130,13 @@ cli_show_cidr(int argc, char **argv)
 static void
 cli_show_lookup(int argc, char **argv)
 {
-	char *nodename;
-	IPType ipType = IPTYPE_NONE;
-
 	if (argc != 1)
 	{
 		commandline_print_usage(&do_show_lookup_command, stderr);
 		exit(EXIT_CODE_BAD_ARGS);
 	}
-	nodename = argv[0];
-	ipType = ip_address_type(nodename);
+	char *nodename = argv[0];
+	IPType ipType = ip_address_type(nodename);
 
 	if (ipType == IPTYPE_NONE)
 	{

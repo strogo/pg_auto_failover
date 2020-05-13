@@ -899,13 +899,12 @@ prepare_keeper_options(KeeperConfig *options)
 void
 set_first_pgctl(PostgresSetup *pgSetup)
 {
-	char *version = NULL;
 	if (!search_path_first("pg_ctl", pgSetup->pg_ctl))
 	{
 		/* errors have already been logged */
 		exit(EXIT_CODE_BAD_ARGS);
 	}
-	version = pg_ctl_version(pgSetup->pg_ctl);
+	char *version = pg_ctl_version(pgSetup->pg_ctl);
 
 	if (version == NULL)
 	{
@@ -1175,10 +1174,8 @@ keeper_cli_print_version(int argc, char **argv)
 void
 cli_pprint_json(JSON_Value *js)
 {
-	char *serialized_string;
-
 	/* output our nice JSON object, pretty printed please */
-	serialized_string = json_serialize_to_string_pretty(js);
+	char *serialized_string = json_serialize_to_string_pretty(js);
 	fformat(stdout, "%s\n", serialized_string);
 
 	/* free intermediate memory */
