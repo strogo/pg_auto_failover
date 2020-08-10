@@ -91,6 +91,8 @@ typedef struct ConnectionRetryPolicy
 	int maxSleepTime;           /* in millisecond, used to cap sleepTime */
 	int baseSleepTime;          /* in millisecond, base time to sleep for */
 	int sleepTime;              /* in millisecond, time waited for last round */
+
+	uint64_t startTime;         /* time of the first attempt */
 	int attempts;               /* how many attempts have been made so far */
 } ConnectionRetryPolicy;
 
@@ -232,6 +234,7 @@ typedef struct SingleValueResultContext
 	") as t(ok) "
 
 bool pgsql_init(PGSQL *pgsql, char *url, ConnectionType connectionType);
+
 void pgsql_set_retry_policy(PGSQL *pgsql,
 							int maxT,
 							int maxR,
@@ -241,6 +244,8 @@ void pgsql_set_main_loop_retry_policy(PGSQL *pgsql);
 void pgsql_set_init_retry_policy(PGSQL *pgsql);
 void pgsql_set_interactive_retry_policy(PGSQL *pgsql);
 int pgsql_compute_connection_retry_sleep_time(ConnectionRetryPolicy *retryPolicy);
+bool pgsql_retry_policy_expired(ConnectionRetryPolicy *retryPolicy);
+
 void pgsql_finish(PGSQL *pgsql);
 void parseSingleValueResult(void *ctx, PGresult *result);
 bool pgsql_execute(PGSQL *pgsql, const char *sql);
