@@ -2585,7 +2585,8 @@ parseCoordinatorNode(void *ctx, PGresult *result)
  * the next call to node_active().
  */
 bool
-monitor_start_maintenance(Monitor *monitor, int nodeId)
+monitor_start_maintenance(Monitor *monitor, int nodeId,
+						  ConnectionRetryPolicy *retryPolicy)
 {
 	SingleValueResultContext context = { { 0 }, PGSQL_RESULT_BOOL, false };
 	PGSQL *pgsql = &monitor->pgsql;
@@ -2602,12 +2603,16 @@ monitor_start_maintenance(Monitor *monitor, int nodeId)
 	{
 		if (monitor_retryable_error(context.sqlstate))
 		{
-			log_warn("Failed to start_maintenance of node %d on the monitor, "
-					 "retrying in %ds.",
-					 nodeId, PG_AUTOCTL_KEEPER_SLEEP_TIME);
+			int sleep = pgsql_compute_connection_retry_sleep_time(retryPolicy);
 
-			sleep(PG_AUTOCTL_KEEPER_SLEEP_TIME);
-			return monitor_start_maintenance(monitor, nodeId);
+			log_warn("Failed to start_maintenance of node %d on the monitor, "
+					 "retrying in %d ms.",
+					 nodeId, sleep);
+
+			/* we have milliseconds, pg_usleep() wants microseconds */
+			(void) pg_usleep(sleep * 1000);
+
+			return monitor_start_maintenance(monitor, nodeId, retryPolicy);
 		}
 
 		log_error("Failed to start_maintenance of node %d from the monitor",
@@ -2633,7 +2638,8 @@ monitor_start_maintenance(Monitor *monitor, int nodeId)
  * the next call to node_active().
  */
 bool
-monitor_stop_maintenance(Monitor *monitor, int nodeId)
+monitor_stop_maintenance(Monitor *monitor, int nodeId,
+						 ConnectionRetryPolicy *retryPolicy)
 {
 	SingleValueResultContext context = { { 0 }, PGSQL_RESULT_BOOL, false };
 	PGSQL *pgsql = &monitor->pgsql;
@@ -2650,12 +2656,16 @@ monitor_stop_maintenance(Monitor *monitor, int nodeId)
 	{
 		if (monitor_retryable_error(context.sqlstate))
 		{
-			log_warn("Failed to start_maintenance of node %d on the monitor, "
-					 "retrying in %ds.",
-					 nodeId, PG_AUTOCTL_KEEPER_SLEEP_TIME);
+			int sleep = pgsql_compute_connection_retry_sleep_time(retryPolicy);
 
-			sleep(PG_AUTOCTL_KEEPER_SLEEP_TIME);
-			return monitor_start_maintenance(monitor, nodeId);
+			log_warn("Failed to start_maintenance of node %d on the monitor, "
+					 "retrying in %d ms.",
+					 nodeId, sleep);
+
+			/* we have milliseconds, pg_usleep() wants microseconds */
+			(void) pg_usleep(sleep * 1000);
+
+			return monitor_start_maintenance(monitor, nodeId, retryPolicy);
 		}
 
 		log_error("Failed to stop_maintenance of node %d from the monitor",
