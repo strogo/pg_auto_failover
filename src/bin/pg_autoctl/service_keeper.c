@@ -604,7 +604,7 @@ keeper_node_active(Keeper *keeper)
 
 
 	/* ensure we use the correct retry policy with the monitor */
-	(void) pgsql_set_main_loop_retry_policy(&(monitor->pgsql));
+	(void) pgsql_set_main_loop_retry_policy(&(monitor->pgsql.retryPolicy));
 
 	/*
 	 * Report the current state to the monitor and get the assigned state.
