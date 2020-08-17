@@ -2517,7 +2517,7 @@ printFormationSettings(void *ctx, PGresult *result)
 	(void) prepareHostNameSeparator(settingSeparatorHeader, maxSettingSize);
 	(void) prepareHostNameSeparator(valueSeparatorHeader, maxValueSize);
 
-	fformat(stdout, "%9s | %*s | %*s | %*s\n",
+	fformat(stdout, "%9s | %*s | %*s | %-*s\n",
 			"Context",
 			maxNameSize, "Name",
 			maxSettingSize, "Setting",
@@ -2541,7 +2541,7 @@ printFormationSettings(void *ctx, PGresult *result)
 		char *setting = PQgetvalue(result, index, 4);
 		char *value = PQgetvalue(result, index, 5);
 
-		fformat(stdout, "%9s | %*s | %*s | %*s\n",
+		fformat(stdout, "%9s | %*s | %*s | %-*s\n",
 				context,
 				maxNameSize, nodename,
 				maxSettingSize, setting,
